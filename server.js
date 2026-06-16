@@ -3,7 +3,7 @@ const fetch = require('node-fetch'); // package.jsonに "node-fetch": "^2.7.0" �
 const app = express();
 
 // あなたのCloudflare WorkerのURL
-const CF_WORKER_URL = "https://api-nemu.myproxy0108.workers.dev";
+const CF_WORKER_URL = "https://api-movie.myproxy0108.workers.dev";
 
 app.all('*', async (req, res) => {
     try {
