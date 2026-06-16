@@ -1,1 +1,12 @@
-
+version: 1
+services:
+  - type: web
+    name: nomorflix
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 16
