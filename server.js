@@ -2,7 +2,7 @@ const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 
-const CF_WORKER_URL = "https://あなたのWorker名.workers.dev";
+const CF_WORKER_URL = "https://proxy-api.myproxy0108.workers.dev";
 
 // 1. 検索・URL入力画面 (トップページ)
 app.get('/', (req, res) => {
