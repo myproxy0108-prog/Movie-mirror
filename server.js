@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
                 if (!val) return;
                 if (!val.startsWith('http')) {
                     // URLでなければGoogle検索へ飛ばすプロキシ
-                    val = "https://www.google.com/search?q=" + encodeURIComponent(val);
+                    val = "https://www.duckduckgo.com/search?q=" + encodeURIComponent(val);
                 }
                 // プロキシパス /_p_/ を付けて移動
                 window.location.href = "/_p_/" + val;
