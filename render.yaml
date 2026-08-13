@@ -1,7 +1,7 @@
 version: 1
 services:
   - type: web
-    name: nomorflix
+    name: sushidada
     env: node
     plan: free
     buildCommand: npm install
