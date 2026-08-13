@@ -74,15 +74,15 @@ app.all('*', async (req, res) => {
             method: req.method,
             headers: headers,
             agent: proxyAgent,
-            compress: false, // ★Workerからの圧縮バイナリを破壊せずそのままブラウザへ流す
+            compress: true, // ★Gzipを安全に自動解凍させて文字化けを完全防止★
             redirect: 'follow',
             body: (req.method !== 'GET' && req.method !== 'HEAD') ? req.body : undefined
         });
 
-        // CORS & レスポンスヘッダー設定
+        // レスポンスヘッダーの設定（解凍済みを渡すため content-encoding は削除）
         response.headers.forEach((v, k) => {
             const key = k.toLowerCase();
-            if (!['transfer-encoding', 'content-length', 'content-security-policy', 'x-frame-options'].includes(key)) {
+            if (!['content-encoding', 'transfer-encoding', 'content-length', 'content-security-policy', 'x-frame-options'].includes(key)) {
                 res.set(k, v);
             }
         });
@@ -94,18 +94,22 @@ app.all('*', async (req, res) => {
 
         const contentType = response.headers.get("content-type") || "";
 
-        // --- MIME タイプの精密補正 (WebGL起動の心臓部) ---
+        // --- MIME タイプの精密補正 ---
         if (req.url.includes('.framework')) {
-            res.set('Content-Type', 'application/javascript');
+            res.set('Content-Type', 'application/javascript; charset=utf-8');
         } else if (req.url.includes('.wasm') || req.url.endsWith('.wasm')) {
             res.set('Content-Type', 'application/wasm');
         } else if (req.url.includes('.data') || req.url.endsWith('.unityweb')) {
             res.set('Content-Type', 'application/octet-stream');
         } else if (req.url.endsWith('.json')) {
-            res.set('Content-Type', 'application/json');
+            res.set('Content-Type', 'application/json; charset=utf-8');
+        } else if (req.url.endsWith('.js')) {
+            res.set('Content-Type', 'application/javascript; charset=utf-8');
+        } else if (req.url.endsWith('.css')) {
+            res.set('Content-Type', 'text/css; charset=utf-8');
         }
 
-        // --- HTMLの場合：Safari用起動補正コードを注入 ---
+        // --- HTMLの場合：Safari補正コード注入 ＆ UTF-8で文字化け防止 ---
         if (contentType.includes("text/html") || req.url === '/' || req.url.includes('play.html')) {
             let text = await response.text();
 
@@ -119,13 +123,19 @@ app.all('*', async (req, res) => {
             return res.status(response.status).send(text);
         }
 
-        // --- ゲームアセット・バイナリの場合：爆速ストリーミング ---
+        // --- JS / JSON / CSS などのテキストデータ ---
+        if (contentType.includes("javascript") || contentType.includes("json") || contentType.includes("text")) {
+            let text = await response.text();
+            return res.status(response.status).send(text);
+        }
+
+        // --- ゲームアセット・バイナリデータの場合：Bufferで安全転送 ---
         if (req.url.includes('_p_') || /\.(wasm|data|unityweb)$/i.test(req.url)) {
             res.set('Cache-Control', 'public, max-age=31536000, immutable');
         }
 
-        res.status(response.status);
-        response.body.pipe(res);
+        const buffer = await response.buffer();
+        return res.status(response.status).send(buffer);
 
     } catch (error) {
         console.error('Fatal Error:', error.message);
