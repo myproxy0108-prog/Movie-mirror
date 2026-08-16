@@ -7,7 +7,8 @@ const app = express();
 // 1. 設定：心臓部（Cloudflare Workers）
 // ==========================================
 const CF_WORKER_URLS = [
-    "https://wolf-word.myproxy0108.workers.dev/"
+    "https://wolf-word.myproxy0108.workers.dev/",
+    "https://wolf-word.nemu0001.workers.dev/"
 ];
 let workerIndex = 0;
 const getWorker = () => CF_WORKER_URLS[workerIndex++ % CF_WORKER_URLS.length];
